@@ -6,7 +6,15 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TheMasterCylinder/juicebox.git"
+  },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TheMasterCylinder/juicebox/issues"
+  },
+  "homepage": "https://github.com/TheMasterCylinder/juicebox#readme"
 }
