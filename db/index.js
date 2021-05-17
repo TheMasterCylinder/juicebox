@@ -88,10 +88,11 @@ async function getUserById(userId) {
  * POST Methods
  */
 
-async function createPost({
+ async function createPost({
   authorId,
   title,
-  content
+  content,
+  tags = [] // this is new
 }) {
   try {
     const { rows: [ post ] } = await client.query(`
@@ -100,7 +101,9 @@ async function createPost({
       RETURNING *;
     `, [authorId, title, content]);
 
-    return post;
+    const tagList = await createTags(tags);
+
+    return await addTagsToPost(post.id, tagList);
   } catch (error) {
     throw error;
   }
@@ -153,6 +156,55 @@ async function getPostsByUser(userId) {
     `);
 
     return rows;
+  } catch (error) {
+    throw error;
+  }
+}
+
+async function updatePost(postId, fields = {}) {
+  
+  const { tags } = fields; 
+  delete fields.tags;
+
+  
+  const setString = Object.keys(fields).map(
+    (key, index) => `"${ key }"=$${ index + 1 }`
+  ).join(', ');
+
+  try {
+    
+    if (setString.length > 0) {
+      await client.query(`
+        UPDATE posts
+        SET ${ setString }
+        WHERE id=${ postId }
+        RETURNING *;
+      `, Object.values(fields));
+    }
+
+    
+    if (tags === undefined) {
+      return await getPostById(postId);
+    }
+
+    
+    const tagList = await createTags(tags);
+    const tagListIdString = tagList.map(
+      tag => `${ tag.id }`
+    ).join(', ');
+
+    
+    await client.query(`
+      DELETE FROM post_tags
+      WHERE "tagId"
+      NOT IN (${ tagListIdString })
+      AND "postId"=$1;
+    `, [postId]);
+
+   
+    await addTagsToPost(postId, tagList);
+
+    return await getPostById(postId);
   } catch (error) {
     throw error;
   }
