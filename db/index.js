@@ -1,3 +1,27 @@
+
+
+const { client } = require('./db');
+client.connect();
+
+server.listen(PORT, () => {
+
+const bodyParser = require('body-parser');
+server.use(bodyParser.json());
+
+const morgan = require('morgan');
+server.use(morgan('dev'));
+const apiRouter = require('./api');
+server.use('/api', apiRouter);
+
+const PORT = 3000;
+const express = require('express');
+const server = express();
+
+server.listen(PORT, () => {
+  console.log('The server is up on port', PORT)
+});
+
+
 const { Client } = require('pg') // imports the pg module
 
 const client = new Client('postgres://localhost:5432/juicebox-dev');
@@ -210,6 +234,20 @@ async function updatePost(postId, fields = {}) {
   }
 }
 
+async function getUserByUsername(username) {
+  try {
+    const { rows: [user] } = await client.query(`
+      SELECT *
+      FROM users
+      WHERE username=$1;
+    `, [username]);
+
+    return user;
+  } catch (error) {
+    throw error;
+  }
+}
+
 module.exports = {  
   client,
   createUser,
@@ -221,3 +259,5 @@ module.exports = {
   getAllPosts,
   getPostsByUser
 }
+});
+
